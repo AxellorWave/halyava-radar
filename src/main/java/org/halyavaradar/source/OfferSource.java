@@ -1,4 +1,4 @@
-package org.halyavaradar.sourse;
+package org.halyavaradar.source;
 
 import org.halyavaradar.model.GameOffer;
 
@@ -8,6 +8,4 @@ public interface OfferSource {
     String getName();
 
     List<GameOffer> fetchOffers();
-
-    GameOffer fetchOffer(String offerId);
 }
