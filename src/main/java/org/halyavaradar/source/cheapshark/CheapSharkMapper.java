@@ -1,12 +1,11 @@
 package org.halyavaradar.source.cheapshark;
 
-import org.halyavaradar.model.GameOffer;
-
 import org.halyavaradar.model.OfferType;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class CheapSharkMapper {
         return dealIds;
     }
 
-    public GameOffer toOffer(String dealId, String json) {
+    public CheapSharkData toData(String dealId, String json, String storeName) {
         JsonNode node = jsonMapper.readTree(json);
         JsonNode gameInfoNode = node.get("gameInfo");
         JsonNode nameNode = gameInfoNode.get("name");
@@ -43,14 +42,46 @@ public class CheapSharkMapper {
             offerType = OfferType.DISCOUNT;
         }
 
-        return new GameOffer(
-                "cheapshark",
+        String gameId = gameInfoNode.path("gameID").asString(null);
+        String storeId = gameInfoNode.path("storeID").asString(null);
+        String thumbnailUrl = gameInfoNode.path("thumb").asString(null);
+        String steamAppId = gameInfoNode.path("steamAppID").asString(null);
+        String steamRatingText = gameInfoNode.path("steamRatingText").asString(null);
+        String steamRatingPercent = gameInfoNode.path("steamRatingPercent").asString(null);
+        String steamReviewCount = gameInfoNode.path("steamRatingCount").asString(null);
+        String metacriticScore = gameInfoNode.path("metacriticScore").asString(null);
+        String publisher = gameInfoNode.path("publisher").asString(null);
+        if ("N/A".equalsIgnoreCase(publisher)) {
+            publisher = null;
+        }
+
+        JsonNode releaseDateNode = gameInfoNode.get("releaseDate");
+        Instant releaseDate = null;
+        if (releaseDateNode != null && !releaseDateNode.isNull()) {
+            long releaseDateSeconds = releaseDateNode.asLong();
+            if (releaseDateSeconds > 0) {
+                releaseDate = Instant.ofEpochSecond(releaseDateSeconds);
+            }
+        }
+
+        return new CheapSharkData(
                 dealId,
                 nameNode.asString(),
-                offerType,
-                "https://www.cheapshark.com/redirect?dealID=" + dealId,
                 salePrice,
-                "USD"
+                retailPrice,
+                "USD",
+                offerType,
+                gameId,
+                storeId,
+                storeName,
+                thumbnailUrl,
+                steamAppId,
+                steamRatingText,
+                steamRatingPercent == null ? null : Integer.parseInt(steamRatingPercent),
+                steamReviewCount == null ? null : Integer.parseInt(steamReviewCount),
+                metacriticScore == null ? null : Integer.parseInt(metacriticScore),
+                releaseDate,
+                publisher
         );
     }
 }
