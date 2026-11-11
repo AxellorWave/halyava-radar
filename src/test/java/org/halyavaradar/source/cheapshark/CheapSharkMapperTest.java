@@ -1,12 +1,12 @@
 package org.halyavaradar.source.cheapshark;
 
+import org.halyavaradar.config.JsonMapperFactory;
 import org.halyavaradar.source.game.OfferType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CheapSharkMapperTest {
-    private final CheapSharkMapper mapper = new CheapSharkMapper(JsonMapper.builder().build());
+    private final CheapSharkMapper mapper = new CheapSharkMapper(JsonMapperFactory.create());
 
     @Test
     void shouldReadDealIdsInOrderWithoutChangingEncoding() throws IOException {

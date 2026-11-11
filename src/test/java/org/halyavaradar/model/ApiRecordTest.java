@@ -1,16 +1,68 @@
 package org.halyavaradar.model;
 
+import org.halyavaradar.config.JsonMapperFactory;
+import org.halyavaradar.source.cheapshark.CheapSharkData;
+import org.halyavaradar.source.game.OfferType;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApiRecordTest {
-    private final JsonMapper jsonMapper = JsonMapper.builder().build();
+    private final JsonMapper jsonMapper = JsonMapperFactory.create();
+
+    @Test
+    void shouldPreserveDecimalPricesThroughDataAndJson() {
+        BigDecimal salePrice = new BigDecimal("0.1234567890123456789");
+        BigDecimal retailPrice = new BigDecimal("19.9900");
+        CheapSharkData offer = new CheapSharkData(
+                "deal-123",
+                "Example Game",
+                salePrice,
+                retailPrice,
+                "USD",
+                OfferType.DISCOUNT,
+                "12345",
+                "7",
+                "GOG",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+        JsonNode data = jsonMapper.valueToTree(offer);
+        ApiRecord original = new ApiRecord(
+                "cheapshark",
+                offer.title(),
+                "https://www.cheapshark.com/redirect?dealID=deal-123",
+                Instant.parse("2026-11-11T12:00:00Z"),
+                data
+        );
+
+        String json = jsonMapper.writeValueAsString(original);
+        ApiRecord restored = jsonMapper.readValue(json, ApiRecord.class);
+        CheapSharkData restoredOffer = jsonMapper.treeToValue(restored.data(), CheapSharkData.class);
+
+        assertAll(
+                () -> assertEquals(0, salePrice.compareTo(data.get("salePrice").asDecimal()),
+                        "Converting to JsonNode must preserve the price"),
+                () -> assertTrue(restored.data().get("salePrice").isNumber()),
+                () -> assertEquals(0, salePrice.compareTo(restored.data().get("salePrice").asDecimal()),
+                        "Writing and reading JSON must preserve the price"),
+                () -> assertEquals(0, salePrice.compareTo(restoredOffer.salePrice())),
+                () -> assertEquals(0, retailPrice.compareTo(restoredOffer.retailPrice()))
+        );
+    }
 
     @Test
     void shouldPreserveGameRecordWhenWritingAndReadingJson() {
