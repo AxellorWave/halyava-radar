@@ -1,6 +1,6 @@
 package org.halyavaradar.source;
 
-import org.halyavaradar.model.GameOffer;
+import org.halyavaradar.model.ApiRecord;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,8 +21,8 @@ public class SourceRegistryTest {
 
     @Test
     void shouldReturnRegisteredSource() {
-        OfferSource cheapshark = createSource("cheapshark");
-        OfferSource freetogame = createSource("freetogame");
+        ApiSource cheapshark = createSource("cheapshark");
+        ApiSource freetogame = createSource("freetogame");
         SourceRegistry registry = new SourceRegistry(List.of(cheapshark, freetogame));
 
         assertSame(cheapshark, registry.getSource("cheapshark"));
@@ -31,7 +31,7 @@ public class SourceRegistryTest {
 
     @Test
     void shouldRejectUnknownSource() {
-        OfferSource source = createSource("cheapshark");
+        ApiSource source = createSource("cheapshark");
         SourceRegistry registry = new SourceRegistry(List.of(source));
 
         assertThrows(IllegalArgumentException.class, () -> registry.getSource("unknown"));
@@ -40,8 +40,8 @@ public class SourceRegistryTest {
 
     @Test
     void shouldRejectDuplicateSourceNames() {
-        OfferSource first = createSource("cheapshark");
-        OfferSource second = createSource("cheapshark");
+        ApiSource first = createSource("cheapshark");
+        ApiSource second = createSource("cheapshark");
 
         assertThrows(IllegalArgumentException.class,
                 () -> new SourceRegistry(List.of(first, second)));
@@ -63,7 +63,7 @@ public class SourceRegistryTest {
 
     @Test
     void shouldReturnUnmodifiableSourceNames() {
-        OfferSource source = createSource("cheapshark");
+        ApiSource source = createSource("cheapshark");
         SourceRegistry registry = new SourceRegistry(List.of(source));
         Set<String> names = registry.getSourceNames();
 
@@ -74,15 +74,15 @@ public class SourceRegistryTest {
         assertSame(source, registry.getSource("cheapshark"));
     }
 
-    private OfferSource createSource(String name) {
-        return new OfferSource() {
+    private ApiSource createSource(String name) {
+        return new ApiSource() {
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public List<GameOffer> fetchOffers() {
+            public List<ApiRecord> fetch() {
                 return List.of();
             }
         };

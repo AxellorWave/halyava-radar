@@ -1,0 +1,21 @@
+{
+  "gameInfo": {
+    "storeID": "7",
+    "gameID": "12345",
+    "name": "Example Game",
+    "steamAppID": "67890",
+    "salePrice": "1.9900",
+    "retailPrice": "19.99",
+    "steamRatingText": "Very Positive",
+    "steamRatingPercent": "89",
+    "steamRatingCount": "1094",
+    "metacriticScore": "85",
+    "releaseDate": 1735689600,
+    "publisher": "Example Publisher",
+    "thumb": "https://example.com/game.jpg"
+  },
+  "cheaperStores": [],
+  "cheapestPrice": {
+    "date": 0
+  }
+}
