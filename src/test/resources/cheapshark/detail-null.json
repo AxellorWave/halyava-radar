@@ -1,0 +1,17 @@
+{
+  "gameInfo": {
+    "name": "Example Game",
+    "salePrice": "1.99",
+    "retailPrice": "19.99",
+    "gameID": null,
+    "storeID": null,
+    "thumb": null,
+    "steamAppID": null,
+    "steamRatingText": null,
+    "steamRatingPercent": null,
+    "steamRatingCount": null,
+    "metacriticScore": null,
+    "releaseDate": null,
+    "publisher": null
+  }
+}
