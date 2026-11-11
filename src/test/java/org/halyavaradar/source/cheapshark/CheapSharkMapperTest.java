@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,10 +40,34 @@ class CheapSharkMapperTest {
     }
 
     @Test
+    void shouldReadStoreNamesById() throws IOException {
+        String json = readFixture("stores.json");
+
+        Map<String, String> storeNames = mapper.readStoreNames(json);
+
+        assertEquals(Map.of("1", "Steam", "7", "GOG"), storeNames);
+    }
+
+    @Test
+    void shouldReturnEmptyMapForEmptyStoreArray() {
+        assertTrue(mapper.readStoreNames("[]").isEmpty());
+    }
+
+    @Test
+    void shouldPreserveStoreIdWhenStoreNameIsUnknown() throws IOException {
+        String json = readFixture("detail-full.json");
+
+        CheapSharkData result = mapper.toData("deal-123", json, Map.of("1", "Steam"));
+
+        assertEquals("7", result.storeId());
+        assertNull(result.storeName());
+    }
+
+    @Test
     void shouldMapAllFieldsOfDiscountedDeal() throws IOException {
         String json = readFixture("detail-full.json");
 
-        CheapSharkData result = mapper.toData("deal%2B123%3D", json, "GOG");
+        CheapSharkData result = mapper.toData("deal%2B123%3D", json, Map.of("1", "Steam", "7", "GOG"));
 
         CheapSharkData expected = new CheapSharkData(
                 "deal%2B123%3D",
@@ -83,7 +108,7 @@ class CheapSharkMapperTest {
                 }
                 """.formatted(salePrice, retailPrice);
 
-        CheapSharkData result = mapper.toData("deal-123", json, "GOG");
+        CheapSharkData result = mapper.toData("deal-123", json, Map.of());
 
         assertEquals(expectedType, result.type());
         assertEquals(new BigDecimal(salePrice), result.salePrice());
@@ -93,7 +118,7 @@ class CheapSharkMapperTest {
     @ParameterizedTest
     @ValueSource(strings = {"detail-minimal.json", "detail-null.json"})
     void shouldPreserveMissingOptionalValuesAsNull(String fixture) throws IOException {
-        CheapSharkData result = mapper.toData("deal-123", readFixture(fixture), null);
+        CheapSharkData result = mapper.toData("deal-123", readFixture(fixture), Map.of());
 
         CheapSharkData expected = new CheapSharkData(
                 "deal-123",
@@ -132,7 +157,7 @@ class CheapSharkMapperTest {
                 }
                 """.formatted(publisher);
 
-        CheapSharkData result = mapper.toData("deal-123", json, "GOG");
+        CheapSharkData result = mapper.toData("deal-123", json, Map.of());
 
         assertNull(result.publisher());
         assertNull(result.releaseDate());
@@ -142,7 +167,7 @@ class CheapSharkMapperTest {
     @ValueSource(strings = {"{", "not json"})
     void shouldRejectMalformedJson(String json) {
         assertThrows(JacksonException.class, () -> mapper.readDealIds(json));
-        assertThrows(JacksonException.class, () -> mapper.toData("deal-123", json, "GOG"));
+        assertThrows(JacksonException.class, () -> mapper.toData("deal-123", json, Map.of()));
     }
 
     @ParameterizedTest
@@ -161,7 +186,7 @@ class CheapSharkMapperTest {
                 }
                 """.formatted(salePrice, retailPrice);
 
-        assertThrows(NumberFormatException.class, () -> mapper.toData("deal-123", json, "GOG"));
+        assertThrows(NumberFormatException.class, () -> mapper.toData("deal-123", json, Map.of()));
     }
 
     private String readFixture(String name) throws IOException {

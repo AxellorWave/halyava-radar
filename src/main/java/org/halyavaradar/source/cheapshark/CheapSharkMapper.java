@@ -8,7 +8,9 @@ import tools.jackson.databind.json.JsonMapper;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CheapSharkMapper {
     private final JsonMapper jsonMapper;
@@ -28,7 +30,18 @@ public class CheapSharkMapper {
         return dealIds;
     }
 
-    public CheapSharkData toData(String dealId, String json, String storeName) {
+    public Map<String, String> readStoreNames(String json) {
+        JsonNode node = jsonMapper.readTree(json);
+        Map<String, String> storeNames = new LinkedHashMap<>();
+        for (JsonNode storeNode : node) {
+            String storeId = storeNode.get("storeID").asString();
+            String storeName = storeNode.get("storeName").asString();
+            storeNames.put(storeId, storeName);
+        }
+        return storeNames;
+    }
+
+    public CheapSharkData toData(String dealId, String json, Map<String, String> storeNames) {
         JsonNode node = jsonMapper.readTree(json);
         JsonNode gameInfoNode = node.get("gameInfo");
         JsonNode nameNode = gameInfoNode.get("name");
@@ -45,6 +58,7 @@ public class CheapSharkMapper {
 
         String gameId = gameInfoNode.path("gameID").asString(null);
         String storeId = gameInfoNode.path("storeID").asString(null);
+        String storeName = storeId == null ? null : storeNames.get(storeId);
         String thumbnailUrl = gameInfoNode.path("thumb").asString(null);
         String steamAppId = gameInfoNode.path("steamAppID").asString(null);
         String steamRatingText = gameInfoNode.path("steamRatingText").asString(null);

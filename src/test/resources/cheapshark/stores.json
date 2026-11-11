@@ -1,0 +1,18 @@
+[
+  {
+    "storeID": "1",
+    "storeName": "Steam",
+    "isActive": 1,
+    "images": {
+      "icon": "/img/stores/icons/0.png"
+    }
+  },
+  {
+    "storeID": "7",
+    "storeName": "GOG",
+    "isActive": 1,
+    "images": {
+      "icon": "/img/stores/icons/6.png"
+    }
+  }
+]
