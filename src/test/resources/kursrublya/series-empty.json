@@ -1,0 +1,12 @@
+{
+  "apiVersion": "1.1.0",
+  "code": "USD",
+  "from": null,
+  "to": null,
+  "count": 0,
+  "points": [],
+  "sourceUrl": "https://www.cbr.ru/hd_base/valuta/",
+  "attribution": "Данные ЦБ РФ",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "siteUrl": "https://kurs-rublya.ru"
+}

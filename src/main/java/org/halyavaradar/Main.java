@@ -8,6 +8,8 @@ import org.halyavaradar.source.cheapshark.CheapSharkMapper;
 import org.halyavaradar.source.cheapshark.CheapSharkSource;
 import org.halyavaradar.source.freetogame.FreeToGameMapper;
 import org.halyavaradar.source.freetogame.FreeToGameSource;
+import org.halyavaradar.source.kursrublya.KursRublyaMapper;
+import org.halyavaradar.source.kursrublya.KursRublyaSource;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
@@ -41,8 +43,15 @@ public class Main {
                     clock
             );
 
-            System.out.println("Источник: FreeToGame — https://www.freetogame.com");
-            for (ApiSource source : List.of(cheapSharkSource, freeToGameSource)) {
+            KursRublyaSource kursRublyaSource = new KursRublyaSource(
+                    apiHttpClient,
+                    new KursRublyaMapper(jsonMapper),
+                    jsonMapper,
+                    URI.create("https://kurs-rublya.ru/api/v1/rates/USD/series/?limit=3"),
+                    clock
+            );
+
+            for (ApiSource source : List.of(cheapSharkSource, freeToGameSource, kursRublyaSource)) {
                 System.out.println("Получение данных: " + source.getName());
                 List<ApiRecord> records = source.fetch();
                 System.out.println("Получено записей: " + records.size());
