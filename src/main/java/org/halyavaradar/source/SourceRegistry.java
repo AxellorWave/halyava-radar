@@ -3,11 +3,11 @@ package org.halyavaradar.source;
 import java.util.*;
 
 public class SourceRegistry {
-    private final Map<String, OfferSource> sources;
+    private final Map<String, ApiSource> sources;
 
-    public SourceRegistry(List<OfferSource> sources) {
+    public SourceRegistry(List<ApiSource> sources) {
         this.sources = new LinkedHashMap<>();
-        for (OfferSource source : sources) {
+        for (ApiSource source : sources) {
             if (this.sources.containsKey(source.getName())) {
                 throw new IllegalArgumentException("Source " + source.getName() + " already exists");
             }
@@ -15,8 +15,8 @@ public class SourceRegistry {
         }
     }
 
-    public OfferSource getSource(String name) {
-        OfferSource result = this.sources.get(name);
+    public ApiSource getSource(String name) {
+        ApiSource result = this.sources.get(name);
         if (result == null) {
             throw new IllegalArgumentException("Source " + name + " does not exist");
         }

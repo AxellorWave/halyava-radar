@@ -1,6 +1,6 @@
 package org.halyavaradar.source.cheapshark;
 
-import org.halyavaradar.model.OfferType;
+import org.halyavaradar.source.game.OfferType;
 
 import java.math.BigDecimal;
 import java.time.Instant;

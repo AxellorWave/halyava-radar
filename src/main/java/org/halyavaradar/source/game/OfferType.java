@@ -1,4 +1,4 @@
-package org.halyavaradar.model;
+package org.halyavaradar.source.game;
 
 public enum OfferType {
     DISCOUNT,

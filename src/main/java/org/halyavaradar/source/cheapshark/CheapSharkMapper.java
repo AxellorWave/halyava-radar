@@ -1,6 +1,7 @@
 package org.halyavaradar.source.cheapshark;
 
-import org.halyavaradar.model.OfferType;
+import org.halyavaradar.source.game.OfferType;
+
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
