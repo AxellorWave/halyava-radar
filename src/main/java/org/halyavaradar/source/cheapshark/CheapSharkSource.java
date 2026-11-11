@@ -1,5 +1,6 @@
 package org.halyavaradar.source.cheapshark;
 
+import lombok.extern.slf4j.Slf4j;
 import org.halyavaradar.http.ApiHttpClient;
 import org.halyavaradar.model.ApiRecord;
 import org.halyavaradar.source.ApiSource;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 public class CheapSharkSource implements ApiSource {
     private static final String SOURCE_NAME = "cheapshark";
     private static final Map<String, String> REQUEST_HEADERS = Map.of("User-Agent", "HalyavaRadar/1.0");
@@ -47,6 +49,7 @@ public class CheapSharkSource implements ApiSource {
 
     @Override
     public List<ApiRecord> fetch() {
+        log.info("Fetching data from CheapShark");
         Map<String, String> storeNames = fetchStoreNames();
         Set<String> dealIds = fetchDealIds();
         List<ApiRecord> records = new ArrayList<>();
@@ -56,6 +59,8 @@ public class CheapSharkSource implements ApiSource {
                 records.add(toRecord(data));
             }
         }
+        log.info("CheapShark fetch completed: uniqueDeals={}, fetched={}, skipped={}",
+                dealIds.size(), records.size(), dealIds.size() - records.size());
         return records;
     }
 
