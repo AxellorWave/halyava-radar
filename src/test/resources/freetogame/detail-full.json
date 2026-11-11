@@ -1,0 +1,26 @@
+{
+  "id": 655,
+  "title": "Example Shooter",
+  "thumbnail": "https://example.com/655/thumbnail.jpg",
+  "status": "Live",
+  "short_description": "A free multiplayer shooter.",
+  "description": "Описание игры.\nA second paragraph.",
+  "game_url": "https://www.freetogame.com/open/example-shooter",
+  "genre": "Shooter",
+  "platform": "Windows",
+  "publisher": "Example Publisher",
+  "developer": "Example Developer",
+  "release_date": "2026-10-30",
+  "freetogame_profile_url": "https://www.freetogame.com/example-shooter",
+  "minimum_system_requirements": {
+    "os": "Windows 10",
+    "processor": "Four-core CPU",
+    "memory": "8 GB RAM",
+    "graphics": "4 GB graphics card",
+    "storage": "25 GB available space"
+  },
+  "screenshots": [
+    {"id": 1, "image": "https://example.com/655/screenshot-1.jpg"},
+    {"id": 2, "image": "https://example.com/655/screenshot-2.jpg"}
+  ]
+}

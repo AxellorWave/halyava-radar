@@ -1,0 +1,14 @@
+{
+  "id": 658,
+  "title": "Partial Game",
+  "release_date": "",
+  "minimum_system_requirements": {
+    "memory": "8 GB RAM"
+  },
+  "screenshots": [
+    {"id": 1},
+    {"id": 2, "image": null},
+    {"id": 3, "image": ""},
+    {"id": 4, "image": "https://example.com/658/screenshot.jpg"}
+  ]
+}
