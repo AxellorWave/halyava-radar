@@ -1,0 +1,15 @@
+{
+  "apiVersion": "1.1.0",
+  "code": "USD",
+  "from": "2026-11-11",
+  "to": "2026-11-12",
+  "count": 2,
+  "points": [
+    {"dateIso": "2026-11-11", "ratePerUnit": 82.5486},
+    {"dateIso": "2026-11-12", "ratePerUnit": 82.6617}
+  ],
+  "sourceUrl": "https://www.cbr.ru/hd_base/valuta/",
+  "attribution": "Данные ЦБ РФ",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "siteUrl": "https://kurs-rublya.ru"
+}
