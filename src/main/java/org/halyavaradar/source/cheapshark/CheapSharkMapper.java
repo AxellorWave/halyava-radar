@@ -8,7 +8,9 @@ import tools.jackson.databind.json.JsonMapper;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CheapSharkMapper {
     private final JsonMapper jsonMapper;
@@ -26,6 +28,17 @@ public class CheapSharkMapper {
             dealIds.add(dealId);
         }
         return dealIds;
+    }
+
+    public Map<String, String> readStoreNames(String json) {
+        JsonNode node = jsonMapper.readTree(json);
+        Map<String, String> storeNames = new LinkedHashMap<>();
+        for (JsonNode storeNode : node) {
+            String storeId = storeNode.get("storeID").asString();
+            String storeName = storeNode.get("storeName").asString();
+            storeNames.put(storeId, storeName);
+        }
+        return storeNames;
     }
 
     public CheapSharkData toData(String dealId, String json, String storeName) {
