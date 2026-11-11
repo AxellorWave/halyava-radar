@@ -41,7 +41,7 @@ public class CheapSharkMapper {
         return storeNames;
     }
 
-    public CheapSharkData toData(String dealId, String json, String storeName) {
+    public CheapSharkData toData(String dealId, String json, Map<String, String> storeNames) {
         JsonNode node = jsonMapper.readTree(json);
         JsonNode gameInfoNode = node.get("gameInfo");
         JsonNode nameNode = gameInfoNode.get("name");
@@ -58,6 +58,7 @@ public class CheapSharkMapper {
 
         String gameId = gameInfoNode.path("gameID").asString(null);
         String storeId = gameInfoNode.path("storeID").asString(null);
+        String storeName = storeId == null ? null : storeNames.get(storeId);
         String thumbnailUrl = gameInfoNode.path("thumb").asString(null);
         String steamAppId = gameInfoNode.path("steamAppID").asString(null);
         String steamRatingText = gameInfoNode.path("steamRatingText").asString(null);
