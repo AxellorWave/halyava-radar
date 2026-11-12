@@ -3,7 +3,8 @@ package org.halyavaradar;
 import org.halyavaradar.config.JsonMapperFactory;
 import org.halyavaradar.http.ApiHttpClient;
 import org.halyavaradar.model.ApiRecord;
-import org.halyavaradar.source.ApiSource;
+import org.halyavaradar.service.ApiAggregator;
+import org.halyavaradar.source.SourceRegistry;
 import org.halyavaradar.source.cheapshark.CheapSharkMapper;
 import org.halyavaradar.source.cheapshark.CheapSharkSource;
 import org.halyavaradar.source.freetogame.FreeToGameMapper;
@@ -51,12 +52,16 @@ public class Main {
                     clock
             );
 
-            for (ApiSource source : List.of(cheapSharkSource, freeToGameSource, kursRublyaSource)) {
-                System.out.println("Получение данных: " + source.getName());
-                List<ApiRecord> records = source.fetch();
-                System.out.println("Получено записей: " + records.size());
-                System.out.println(jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(records));
-            }
+            SourceRegistry sourceRegistry = new SourceRegistry(
+                    List.of(cheapSharkSource, freeToGameSource, kursRublyaSource)
+            );
+            ApiAggregator aggregator = new ApiAggregator(sourceRegistry);
+            List<String> sourceNames = List.copyOf(sourceRegistry.getSourceNames());
+
+            System.out.println("Получение данных из источников: " + String.join(", ", sourceNames));
+            List<ApiRecord> records = aggregator.fetch(sourceNames);
+            System.out.println("Получено записей: " + records.size());
+            System.out.println(jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(records));
         }
     }
 }
