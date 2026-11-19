@@ -37,6 +37,12 @@ public class JsonFileStorage {
         return jsonMapper.readValue(json, new TypeReference<List<ApiRecord>>() {
         });
     }
+
+    public void append(List<ApiRecord> records) throws IOException {
+        List<ApiRecord> oldRecords = new ArrayList<>(load());
+        oldRecords.addAll(records);
+        save(oldRecords);
+    }
 }
 
 
