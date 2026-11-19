@@ -1,0 +1,42 @@
+package org.halyavaradar.storage;
+
+import org.halyavaradar.model.ApiRecord;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+public class JsonFileStorage {
+    private final Path filePath;
+    private final JsonMapper jsonMapper;
+
+    public JsonFileStorage(Path filePath, JsonMapper jsonMapper) {
+        this.filePath = filePath;
+        this.jsonMapper = jsonMapper;
+    }
+
+    public void save(List<ApiRecord> records) throws IOException {
+        if (filePath.getParent() != null) {
+            Files.createDirectories(filePath.getParent());
+        }
+
+        String json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(records);
+        Files.writeString(filePath, json, StandardCharsets.UTF_8);
+    }
+
+    public List<ApiRecord> load() throws IOException {
+        if (!Files.exists(filePath)) {
+            return new ArrayList<>();
+        }
+        String json = Files.readString(filePath, StandardCharsets.UTF_8);
+        return jsonMapper.readValue(json, new TypeReference<List<ApiRecord>>() {
+        });
+    }
+}
+
+
