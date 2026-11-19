@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JsonFileStorage {
+public class JsonFileStorage implements FileStorage {
     private final Path filePath;
     private final JsonMapper jsonMapper;
 
@@ -20,6 +20,7 @@ public class JsonFileStorage {
         this.jsonMapper = jsonMapper;
     }
 
+    @Override
     public void save(List<ApiRecord> records) throws IOException {
         if (filePath.getParent() != null) {
             Files.createDirectories(filePath.getParent());
@@ -29,6 +30,7 @@ public class JsonFileStorage {
         Files.writeString(filePath, json, StandardCharsets.UTF_8);
     }
 
+    @Override
     public List<ApiRecord> load() throws IOException {
         if (!Files.exists(filePath)) {
             return new ArrayList<>();
@@ -38,6 +40,7 @@ public class JsonFileStorage {
         });
     }
 
+    @Override
     public void append(List<ApiRecord> records) throws IOException {
         List<ApiRecord> oldRecords = new ArrayList<>(load());
         oldRecords.addAll(records);
