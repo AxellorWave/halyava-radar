@@ -21,6 +21,7 @@ repositories {
 }
 
 dependencies {
+    implementation("info.picocli:picocli:4.7.7")
     implementation("com.opencsv:opencsv:5.12.0")
     compileOnly("org.projectlombok:lombok:1.18.48")
     annotationProcessor("org.projectlombok:lombok:1.18.48")
