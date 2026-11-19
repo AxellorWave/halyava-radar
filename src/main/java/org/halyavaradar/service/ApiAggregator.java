@@ -18,16 +18,23 @@ public class ApiAggregator {
 
     public List<ApiRecord> fetch(List<String> sourceNames) {
         List<ApiRecord> records = new ArrayList<>();
-        log.info("Fetching data from sources: count={}", sourceNames.size());
+        int failedSources = 0;
+        log.info("Начат сбор данных: источников={}", sourceNames.size());
         for (String sourceName : sourceNames) {
             ApiSource source = sourceRegistry.getSource(sourceName);
             try {
                 records.addAll(source.fetch());
             } catch (RuntimeException e) {
-                log.warn("Source fetch failed: source={}, errorType={}", sourceName, e.getClass().getSimpleName());
+                failedSources++;
+                log.warn("Не удалось получить данные источника {}. Сбор остальных источников продолжается",
+                        sourceName, e);
             }
         }
-        log.info("Aggregation completed: records={}", records.size());
+        if (!sourceNames.isEmpty() && failedSources == sourceNames.size()) {
+            log.error("Сбор данных завершён: все {} источников завершились ошибкой, записей нет", failedSources);
+        } else {
+            log.info("Сбор данных завершён: записей={}, источников с ошибкой={}", records.size(), failedSources);
+        }
 
         return records;
     }

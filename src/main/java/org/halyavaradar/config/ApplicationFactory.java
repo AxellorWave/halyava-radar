@@ -1,5 +1,6 @@
 package org.halyavaradar.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.halyavaradar.cli.FetchCommand;
 import org.halyavaradar.cli.RadarCommand;
 import org.halyavaradar.cli.ReadCommand;
@@ -27,6 +28,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 
+@Slf4j
 public class ApplicationFactory implements AutoCloseable {
     private final JsonMapper jsonMapper;
     private final HttpClient httpClient;
@@ -99,6 +101,20 @@ public class ApplicationFactory implements AutoCloseable {
         );
 
         commandLine.setCaseInsensitiveEnumValuesAllowed(true);
+        commandLine.setParameterExceptionHandler((exception, arguments) -> {
+            CommandLine failedCommand = exception.getCommandLine();
+            log.warn("Ошибка аргументов команды {}: {}",
+                    failedCommand.getCommandName(), exception.getMessage());
+            failedCommand.getErr().println("Ошибка аргументов: " + exception.getMessage());
+            failedCommand.usage(failedCommand.getErr());
+            return CommandLine.ExitCode.USAGE;
+        });
+        commandLine.setExecutionExceptionHandler((exception, failedCommand, parseResult) -> {
+            log.error("Ошибка выполнения команды {}: {}",
+                    failedCommand.getCommandName(), exception.getMessage(), exception);
+            failedCommand.getErr().println("Ошибка выполнения: " + exception.getMessage());
+            return CommandLine.ExitCode.SOFTWARE;
+        });
 
         return commandLine;
     }

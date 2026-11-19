@@ -53,7 +53,7 @@ public class FreeToGameSource implements ApiSource {
 
     @Override
     public List<ApiRecord> fetch() {
-        log.info("Fetching data from FreeToGame: limit={}", maxGames);
+        log.info("Получение данных FreeToGame: лимит={}", maxGames);
         String json = httpClient.get(gamesUri, REQUEST_HEADERS);
         Set<Integer> gameIds = new LinkedHashSet<>(mapper.readGameIds(json));
         List<ApiRecord> records = new ArrayList<>();
@@ -64,7 +64,7 @@ public class FreeToGameSource implements ApiSource {
             FreeToGameData data = fetchGame(gameId);
             records.add(toRecord(data));
         }
-        log.info("FreeToGame fetch completed: available={}, selected={}, fetched={}",
+        log.info("Получение данных FreeToGame завершено: доступно={}, выбрано={}, получено={}",
                 gameIds.size(), Math.min(gameIds.size(), maxGames), records.size());
         return records;
     }

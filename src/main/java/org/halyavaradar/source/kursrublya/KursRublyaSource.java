@@ -44,7 +44,7 @@ public class KursRublyaSource implements ApiSource {
 
     @Override
     public List<ApiRecord> fetch() {
-        log.info("Fetching exchange rate history from KursRublya");
+        log.info("Получение истории курсов KursRublya");
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -53,7 +53,7 @@ public class KursRublyaSource implements ApiSource {
         }
         KursRublyaData data = mapper.toData(httpClient.get(seriesUri, REQUEST_HEADERS));
         if (data.points().isEmpty()) {
-            log.info("KursRublya fetch completed: currency={}, points=0, fetched=0", data.currencyCode());
+            log.info("Получение данных KursRublya завершено: валюта={}, точек=0, записей=0", data.currencyCode());
             return List.of();
         }
         ApiRecord record = new ApiRecord(
@@ -63,7 +63,7 @@ public class KursRublyaSource implements ApiSource {
                 clock.instant(),
                 jsonMapper.valueToTree(data)
         );
-        log.info("KursRublya fetch completed: currency={}, points={}, fetched=1",
+        log.info("Получение данных KursRublya завершено: валюта={}, точек={}, записей=1",
                 data.currencyCode(), data.points().size());
         return List.of(record);
     }

@@ -85,7 +85,12 @@ public class FetchCommand implements Callable<Integer> {
             }
         }
 
+        log.info("Запуск получения данных: источники={}, формат={}, режим={}, файл={}",
+                selectedSources, format, mode, filePath);
         List<ApiRecord> records = aggregator.fetch(selectedSources);
+        if (records.isEmpty()) {
+            log.warn("Источники не вернули записей: файл={}, режим записи={}", filePath, mode);
+        }
         StorageService storageService = factory.createStorageService(filePath, format);
         storageService.write(records, mode);
 

@@ -25,21 +25,21 @@ public class ApiHttpClient {
         headers.forEach((name, value) -> builder.header(name, value));
         HttpRequest request = builder.build();
         try {
-            log.debug("Sending HTTP GET request to host={}", uri.getHost());
+            log.debug("Отправка HTTP GET: сервер={}", uri.getHost());
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() > 299) {
-                log.warn("HTTP GET request returned unsuccessful status: host={}, status={}",
+                log.debug("Сервер вернул неуспешный HTTP-статус: сервер={}, статус={}",
                         uri.getHost(), response.statusCode());
                 throw new ApiRequestException("Unexpected HTTP status: " + response.statusCode(), null);
             }
-            log.debug("HTTP GET request completed: host={}, status={}", uri.getHost(), response.statusCode());
+            log.debug("HTTP GET завершён: сервер={}, статус={}", uri.getHost(), response.statusCode());
             return response.body();
         } catch (IOException e) {
-            log.warn("HTTP GET request failed: host={}, errorType={}", uri.getHost(), e.getClass().getSimpleName());
+            log.debug("Ошибка HTTP GET: сервер={}", uri.getHost(), e);
             throw new ApiRequestException("HTTP request failed", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.warn("HTTP GET request interrupted: host={}", uri.getHost());
+            log.debug("HTTP GET прерван: сервер={}", uri.getHost(), e);
             throw new ApiRequestException("HTTP request interrupted", e);
         }
 

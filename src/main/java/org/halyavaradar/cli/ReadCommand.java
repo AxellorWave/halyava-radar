@@ -1,5 +1,6 @@
 package org.halyavaradar.cli;
 
+import lombok.extern.slf4j.Slf4j;
 import org.halyavaradar.config.ApplicationFactory;
 import org.halyavaradar.model.ApiRecord;
 import org.halyavaradar.service.StorageService;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+@Slf4j
 @CommandLine.Command(
         name = "read",
         description = "Прочитать сохранённые записи из файла.",
@@ -59,14 +61,19 @@ public class ReadCommand implements Callable<Integer> {
 
     @Override
     public Integer call() throws IOException {
+        log.info("Просмотр файла: файл={}, формат={}, фильтр по источнику={}", filePath, format, source);
         StorageService storageService = factory.createStorageService(filePath, format);
         List<ApiRecord> records = storageService.read();
         if (source != null) {
             records = records.stream().filter(record -> source.equals(record.source())).toList();
+            if (records.isEmpty()) {
+                log.info("В файле {} нет записей источника {}", filePath, source);
+            }
         }
 
         String json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(records);
         spec.commandLine().getOut().println(json);
+        log.info("Выведено записей: {}", records.size());
         return 0;
     }
 }
