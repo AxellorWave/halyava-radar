@@ -1,7 +1,9 @@
 package org.halyavaradar.storage;
 
 import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.RFC4180ParserBuilder;
+import com.opencsv.exceptions.CsvException;
 import org.halyavaradar.config.JsonMapperFactory;
 import org.halyavaradar.model.ApiRecord;
 import org.junit.jupiter.api.Test;
@@ -42,7 +44,8 @@ class CsvFileStorageTest {
 
         assertEquals(records, new CsvFileStorage(file, jsonMapper).load());
         assertTrue(Files.readString(file, StandardCharsets.UTF_8).contains("Первая игра"));
-        try (CSVReader reader = new CSVReader(Files.newBufferedReader(file, StandardCharsets.UTF_8))) {
+        try (CSVReader reader = new CSVReaderBuilder(Files.newBufferedReader(file, StandardCharsets.UTF_8))
+                .withCSVParser(new RFC4180ParserBuilder().build()).build()) {
             assertArrayEquals(new String[]{"source", "title", "url", "fetchedAt", "data"}, reader.readNext());
             String[] row = reader.readNext();
             assertEquals(5, row.length);
@@ -248,9 +251,9 @@ class CsvFileStorageTest {
         return storage();
     }
 
-    private List<String[]> readRows(Path file) throws IOException, CsvValidationException,
-            com.opencsv.exceptions.CsvException {
-        try (CSVReader reader = new CSVReader(Files.newBufferedReader(file, StandardCharsets.UTF_8))) {
+    private List<String[]> readRows(Path file) throws IOException, CsvException {
+        try (CSVReader reader = new CSVReaderBuilder(Files.newBufferedReader(file, StandardCharsets.UTF_8))
+                .withCSVParser(new RFC4180ParserBuilder().build()).build()) {
             return reader.readAll();
         }
     }

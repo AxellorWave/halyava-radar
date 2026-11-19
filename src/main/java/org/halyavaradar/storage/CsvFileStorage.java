@@ -1,7 +1,9 @@
 package org.halyavaradar.storage;
 
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
+import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.halyavaradar.model.ApiRecord;
 import tools.jackson.databind.json.JsonMapper;
@@ -61,8 +63,7 @@ public class CsvFileStorage {
     }
 
     private boolean checkFirstRow() throws IOException, CsvValidationException {
-        try (CSVReader reader = new CSVReader(
-                Files.newBufferedReader(filePath, StandardCharsets.UTF_8))) {
+        try (CSVReader reader = createReader()) {
             return Arrays.equals(reader.readNext(), HEADER);
         }
     }
@@ -72,7 +73,7 @@ public class CsvFileStorage {
             return new ArrayList<>();
         }
         List<ApiRecord> records = new ArrayList<>();
-        try (CSVReader reader = new CSVReader(Files.newBufferedReader(filePath, StandardCharsets.UTF_8))) {
+        try (CSVReader reader = createReader()) {
             String[] header = reader.readNext();
             if (!Arrays.equals(header, HEADER)) {
                 throw new IOException("Некорректный заголовок в CSV: " + filePath);
@@ -83,6 +84,12 @@ public class CsvFileStorage {
             }
         }
         return records;
+    }
+
+    private CSVReader createReader() throws IOException {
+        return new CSVReaderBuilder(Files.newBufferedReader(filePath, StandardCharsets.UTF_8))
+                .withCSVParser(new RFC4180ParserBuilder().build())
+                .build();
     }
 
     private String[] toRow(ApiRecord record) {
