@@ -5,7 +5,7 @@
             <level>DEBUG</level>
         </filter>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{20} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{20} - %msg%n%ex{0}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
