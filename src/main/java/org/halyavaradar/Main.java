@@ -12,6 +12,7 @@ import org.halyavaradar.source.freetogame.FreeToGameMapper;
 import org.halyavaradar.source.freetogame.FreeToGameSource;
 import org.halyavaradar.source.kursrublya.KursRublyaMapper;
 import org.halyavaradar.source.kursrublya.KursRublyaSource;
+import org.halyavaradar.storage.CsvFileStorage;
 import org.halyavaradar.storage.JsonFileStorage;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -25,7 +26,8 @@ import java.util.List;
 
 @Slf4j
 public class Main {
-    private static final Path RECORDS_PATH = Path.of("data", "records.json");
+    private static final Path RECORDS_JSON_PATH = Path.of("data", "records.json");
+    private static final Path RECORDS_CSV_PATH = Path.of("data", "records.csv");
 
     public static void main(String[] args) throws IOException {
         JsonMapper jsonMapper = JsonMapperFactory.create();
@@ -80,8 +82,12 @@ public class Main {
     }
 
     private static void saveRecords(List<ApiRecord> records, JsonMapper jsonMapper) throws IOException {
-        JsonFileStorage storage = new JsonFileStorage(RECORDS_PATH, jsonMapper);
-        storage.save(records);
-        log.info("Данные сохранены в {}", RECORDS_PATH);
+        JsonFileStorage jsonStorage = new JsonFileStorage(RECORDS_JSON_PATH, jsonMapper);
+        jsonStorage.save(records);
+        log.info("Данные json сохранены в {}", RECORDS_JSON_PATH);
+        CsvFileStorage csvStorage = new CsvFileStorage(RECORDS_CSV_PATH, jsonMapper);
+        csvStorage.save(records);
+        log.info("Данные csv сохранены в {}", RECORDS_CSV_PATH);
     }
+
 }

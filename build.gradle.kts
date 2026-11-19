@@ -21,6 +21,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.opencsv:opencsv:5.12.0")
     compileOnly("org.projectlombok:lombok:1.18.48")
     annotationProcessor("org.projectlombok:lombok:1.18.48")
     implementation("org.slf4j:slf4j-api:2.0.20")
