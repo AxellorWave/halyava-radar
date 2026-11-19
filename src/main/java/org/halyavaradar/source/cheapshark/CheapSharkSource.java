@@ -49,7 +49,7 @@ public class CheapSharkSource implements ApiSource {
 
     @Override
     public List<ApiRecord> fetch() {
-        log.info("Fetching data from CheapShark");
+        log.info("Получение данных CheapShark");
         Map<String, String> storeNames = fetchStoreNames();
         Set<String> dealIds = fetchDealIds();
         List<ApiRecord> records = new ArrayList<>();
@@ -59,7 +59,7 @@ public class CheapSharkSource implements ApiSource {
                 records.add(toRecord(data));
             }
         }
-        log.info("CheapShark fetch completed: uniqueDeals={}, fetched={}, skipped={}",
+        log.info("Получение данных CheapShark завершено: уникальных предложений={}, получено={}, пропущено={}",
                 dealIds.size(), records.size(), dealIds.size() - records.size());
         return records;
     }

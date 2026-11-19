@@ -1,5 +1,6 @@
 package org.halyavaradar.storage;
 
+import lombok.extern.slf4j.Slf4j;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
@@ -18,7 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CsvFileStorage {
+@Slf4j
+public class CsvFileStorage implements FileStorage {
     private static final String[] HEADER = {"source", "title", "url", "fetchedAt", "data"};
     private final Path filePath;
     private final JsonMapper jsonMapper;
@@ -28,7 +30,9 @@ public class CsvFileStorage {
         this.jsonMapper = jsonMapper;
     }
 
+    @Override
     public void save(List<ApiRecord> records) throws IOException {
+        log.debug("Сохранение CSV: файл={}, записей={}", filePath, records.size());
         if (filePath.getParent() != null) {
             Files.createDirectories(filePath.getParent());
         }
@@ -43,7 +47,9 @@ public class CsvFileStorage {
         }
     }
 
-    public void append(List<ApiRecord> records) throws IOException, CsvValidationException {
+    @Override
+    public void append(List<ApiRecord> records) throws IOException {
+        log.debug("Дозапись CSV: файл={}, новых записей={}", filePath, records.size());
         if (!Files.exists(filePath) || Files.size(filePath) == 0) {
             save(records);
             return;
@@ -62,14 +68,19 @@ public class CsvFileStorage {
         }
     }
 
-    private boolean checkFirstRow() throws IOException, CsvValidationException {
+    private boolean checkFirstRow() throws IOException {
         try (CSVReader reader = createReader()) {
             return Arrays.equals(reader.readNext(), HEADER);
+        } catch (CsvValidationException e) {
+            throw new IOException("Не удалось прочитать заголовок CSV: " + filePath, e);
         }
     }
 
-    public List<ApiRecord> load() throws IOException, CsvValidationException {
+    @Override
+    public List<ApiRecord> load() throws IOException {
+        log.debug("Чтение CSV: файл={}", filePath);
         if (!Files.exists(filePath)) {
+            log.warn("CSV-файл отсутствует, возвращён пустой список: {}", filePath);
             return new ArrayList<>();
         }
         List<ApiRecord> records = new ArrayList<>();
@@ -82,6 +93,8 @@ public class CsvFileStorage {
             while ((row = reader.readNext()) != null) {
                 records.add(fromRaw(row));
             }
+        } catch (CsvValidationException e) {
+            throw new IOException("Не удалось прочитать CSV-файл: " + filePath, e);
         }
         return records;
     }
