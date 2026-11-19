@@ -1,5 +1,8 @@
 package org.halyavaradar.config;
 
+import org.halyavaradar.cli.FetchCommand;
+import org.halyavaradar.cli.RadarCommand;
+import org.halyavaradar.cli.ReadCommand;
 import org.halyavaradar.http.ApiHttpClient;
 import org.halyavaradar.service.ApiAggregator;
 import org.halyavaradar.service.StorageService;
@@ -14,6 +17,7 @@ import org.halyavaradar.storage.CsvFileStorage;
 import org.halyavaradar.storage.FileStorage;
 import org.halyavaradar.storage.JsonFileStorage;
 import org.halyavaradar.storage.StorageFormat;
+import picocli.CommandLine;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
@@ -70,10 +74,6 @@ public class ApplicationFactory implements AutoCloseable {
         return new SourceRegistry(List.of(cheapSharkSource, freeToGameSource, kursRublyaSource));
     }
 
-    public ApiAggregator createApiAggregator() {
-        return new ApiAggregator(createSourceRegistry());
-    }
-
     public StorageService createStorageService(Path filePath, StorageFormat format) {
         FileStorage storage = switch (format) {
             case JSON -> new JsonFileStorage(filePath, jsonMapper);
@@ -81,6 +81,26 @@ public class ApplicationFactory implements AutoCloseable {
         };
 
         return new StorageService(storage);
+    }
+
+    public CommandLine createCommandLine() {
+        SourceRegistry registry = createSourceRegistry();
+        ApiAggregator aggregator = new ApiAggregator(registry);
+
+        CommandLine commandLine = new CommandLine(new RadarCommand());
+
+        commandLine.addSubcommand(
+                "fetch",
+                new FetchCommand(aggregator, registry, this)
+        );
+        commandLine.addSubcommand(
+                "read",
+                new ReadCommand(this, jsonMapper)
+        );
+
+        commandLine.setCaseInsensitiveEnumValuesAllowed(true);
+
+        return commandLine;
     }
 }
 
