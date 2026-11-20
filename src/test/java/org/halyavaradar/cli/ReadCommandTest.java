@@ -1,10 +1,10 @@
 package org.halyavaradar.cli;
 
-import org.halyavaradar.config.ApplicationFactory;
 import org.halyavaradar.config.JsonMapperFactory;
-import org.halyavaradar.model.ApiRecord;
-import org.halyavaradar.service.StorageService;
-import org.halyavaradar.storage.StorageFormat;
+import org.halyavaradar.core.model.ApiRecord;
+import org.halyavaradar.core.service.StorageService;
+import org.halyavaradar.core.service.StorageServiceFactory;
+import org.halyavaradar.core.storage.StorageFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -32,7 +32,7 @@ class ReadCommandTest {
     @TempDir
     Path tempDir;
 
-    private final ApplicationFactory factory = mock(ApplicationFactory.class);
+    private final StorageServiceFactory storageServiceFactory = mock(StorageServiceFactory.class);
     private final StorageService storage = mock(StorageService.class);
     private final JsonMapper mapper = JsonMapperFactory.create();
     private final StringWriter output = new StringWriter();
@@ -44,7 +44,7 @@ class ReadCommandTest {
     @BeforeEach
     void setUp() {
         file = tempDir.resolve("records.dat");
-        cli = new CommandLine(new ReadCommand(factory, mapper));
+        cli = new CommandLine(new ReadCommand(storageServiceFactory, mapper));
         cli.setCaseInsensitiveEnumValuesAllowed(true);
         cli.setOut(new PrintWriter(output, true));
         cli.setErr(new PrintWriter(new StringWriter(), true));
@@ -52,13 +52,13 @@ class ReadCommandTest {
 
     @Test
     void shouldReadJsonByDefaultAndPrintAllRecords() throws IOException {
-        when(factory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
         when(storage.read()).thenReturn(records);
 
         assertEquals(0, cli.execute("--path", file.toString()));
 
         assertEquals(records, readOutput());
-        verify(factory).createStorageService(file, StorageFormat.JSON);
+        verify(storageServiceFactory).createStorageService(file, StorageFormat.JSON);
         verify(storage).read();
     }
 
@@ -66,19 +66,19 @@ class ReadCommandTest {
     @ValueSource(strings = {"json", "CsV"})
     void shouldSelectFormatAndFilterRecordsPreservingOrder(String format) throws IOException {
         StorageFormat expected = StorageFormat.valueOf(format.toUpperCase(java.util.Locale.ROOT));
-        when(factory.createStorageService(file, expected)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, expected)).thenReturn(storage);
         when(storage.read()).thenReturn(records);
 
         assertEquals(0, cli.execute("--path", file.toString(), "--format", format, "--source", "cheapshark"));
 
         assertEquals(List.of(records.get(0), records.get(2)), readOutput());
         assertEquals(3, records.size());
-        verify(factory).createStorageService(file, expected);
+        verify(storageServiceFactory).createStorageService(file, expected);
     }
 
     @Test
     void shouldReturnEmptyArrayWhenSourceDoesNotMatch() throws IOException {
-        when(factory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
         when(storage.read()).thenReturn(records);
 
         assertEquals(0, cli.execute("--path", file.toString(), "--source", "archived-source"));
@@ -88,7 +88,7 @@ class ReadCommandTest {
     @Test
     void shouldAllowFilteringSourceAbsentFromCurrentRegistry() throws IOException {
         List<ApiRecord> archived = List.of(record("archived-source", "Архив"));
-        when(factory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
         when(storage.read()).thenReturn(archived);
 
         assertEquals(0, cli.execute("--path", file.toString(), "--source", "archived-source"));
@@ -99,24 +99,24 @@ class ReadCommandTest {
     void shouldShowHelpWithoutReadingFile() {
         assertEquals(0, cli.execute("--help"));
         assertTrue(output.toString().contains("--source"));
-        verifyNoInteractions(factory, storage);
+        verifyNoInteractions(storageServiceFactory, storage);
     }
 
     @Test
     void shouldRejectMissingPathWithoutReadingFile() {
         assertEquals(CommandLine.ExitCode.USAGE, cli.execute());
-        verifyNoInteractions(factory, storage);
+        verifyNoInteractions(storageServiceFactory, storage);
     }
 
     @Test
     void shouldRejectUnknownFormatWithoutReadingFile() {
         assertEquals(CommandLine.ExitCode.USAGE, cli.execute("--path", file.toString(), "--format", "xml"));
-        verifyNoInteractions(factory, storage);
+        verifyNoInteractions(storageServiceFactory, storage);
     }
 
     @Test
     void shouldReturnFailureWithoutOutputWhenReadFails() throws IOException {
-        when(factory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
         when(storage.read()).thenThrow(new IOException("Ошибка чтения"));
 
         assertEquals(CommandLine.ExitCode.SOFTWARE, cli.execute("--path", file.toString()));

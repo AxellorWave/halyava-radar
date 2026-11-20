@@ -1,10 +1,10 @@
 package org.halyavaradar.cli;
 
 import lombok.extern.slf4j.Slf4j;
-import org.halyavaradar.config.ApplicationFactory;
-import org.halyavaradar.model.ApiRecord;
-import org.halyavaradar.service.StorageService;
-import org.halyavaradar.storage.StorageFormat;
+import org.halyavaradar.core.model.ApiRecord;
+import org.halyavaradar.core.service.StorageService;
+import org.halyavaradar.core.service.StorageServiceFactory;
+import org.halyavaradar.core.storage.StorageFormat;
 import picocli.CommandLine;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -21,11 +21,11 @@ import java.util.concurrent.Callable;
         optionListHeading = "%nПараметры:%n"
 )
 public class ReadCommand implements Callable<Integer> {
-    private final ApplicationFactory factory;
+    private final StorageServiceFactory storageServiceFactory;
     private final JsonMapper jsonMapper;
 
-    public ReadCommand(ApplicationFactory factory, JsonMapper jsonMapper) {
-        this.factory = factory;
+    public ReadCommand(StorageServiceFactory storageServiceFactory, JsonMapper jsonMapper) {
+        this.storageServiceFactory = storageServiceFactory;
         this.jsonMapper = jsonMapper;
     }
 
@@ -62,7 +62,7 @@ public class ReadCommand implements Callable<Integer> {
     @Override
     public Integer call() throws IOException {
         log.info("Просмотр файла: файл={}, формат={}, фильтр по источнику={}", filePath, format, source);
-        StorageService storageService = factory.createStorageService(filePath, format);
+        StorageService storageService = storageServiceFactory.createStorageService(filePath, format);
         List<ApiRecord> records = storageService.read();
         if (source != null) {
             records = records.stream().filter(record -> source.equals(record.source())).toList();

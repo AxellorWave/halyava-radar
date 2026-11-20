@@ -1,6 +1,8 @@
 package org.halyavaradar.cli;
 
 import org.halyavaradar.config.ApplicationFactory;
+import org.halyavaradar.core.service.ApiAggregator;
+import org.halyavaradar.core.source.SourceRegistry;
 import org.halyavaradar.config.JsonMapperFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -22,7 +24,7 @@ class CliErrorHandlingTest {
     @Test
     void shouldHandleReadFailureWithoutStackTraceInCommandErrorStream() {
         try (ApplicationFactory factory = new ApplicationFactory()) {
-            CommandLine cli = factory.createCommandLine();
+            CommandLine cli = createCli(factory);
             StringWriter errors = new StringWriter();
             cli.setErr(new PrintWriter(errors, true));
 
@@ -37,7 +39,7 @@ class CliErrorHandlingTest {
     void shouldHandleUnknownSourceBeforeSaving() {
         Path file = tempDir.resolve("records.json");
         try (ApplicationFactory factory = new ApplicationFactory()) {
-            CommandLine cli = factory.createCommandLine();
+            CommandLine cli = createCli(factory);
             StringWriter errors = new StringWriter();
             cli.setErr(new PrintWriter(errors, true));
 
@@ -52,7 +54,7 @@ class CliErrorHandlingTest {
     @Test
     void shouldHandleMissingRequiredArgument() {
         try (ApplicationFactory factory = new ApplicationFactory()) {
-            CommandLine cli = factory.createCommandLine();
+            CommandLine cli = createCli(factory);
             StringWriter errors = new StringWriter();
             cli.setErr(new PrintWriter(errors, true));
 
@@ -66,7 +68,7 @@ class CliErrorHandlingTest {
         Path file = tempDir.resolve("records.json");
         Files.writeString(file, "[]");
         try (ApplicationFactory factory = new ApplicationFactory()) {
-            CommandLine cli = factory.createCommandLine();
+            CommandLine cli = createCli(factory);
             StringWriter output = new StringWriter();
             StringWriter errors = new StringWriter();
             cli.setOut(new PrintWriter(output, true));
@@ -78,5 +80,11 @@ class CliErrorHandlingTest {
                     JsonMapperFactory.create().readTree(output.toString()));
             assertTrue(errors.toString().isEmpty());
         }
+    }
+
+    private CommandLine createCli(ApplicationFactory factory) {
+        SourceRegistry registry = factory.createSourceRegistry();
+        ApiAggregator aggregator = factory.createAggregator(registry);
+        return new CommandLineFactory(aggregator, registry, factory, factory.getJsonMapper()).create();
     }
 }

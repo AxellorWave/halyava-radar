@@ -1,24 +1,20 @@
 package org.halyavaradar.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.halyavaradar.cli.FetchCommand;
-import org.halyavaradar.cli.RadarCommand;
-import org.halyavaradar.cli.ReadCommand;
-import org.halyavaradar.http.ApiHttpClient;
-import org.halyavaradar.service.ApiAggregator;
-import org.halyavaradar.service.StorageService;
-import org.halyavaradar.source.SourceRegistry;
-import org.halyavaradar.source.cheapshark.CheapSharkMapper;
-import org.halyavaradar.source.cheapshark.CheapSharkSource;
-import org.halyavaradar.source.freetogame.FreeToGameMapper;
-import org.halyavaradar.source.freetogame.FreeToGameSource;
-import org.halyavaradar.source.kursrublya.KursRublyaMapper;
-import org.halyavaradar.source.kursrublya.KursRublyaSource;
-import org.halyavaradar.storage.CsvFileStorage;
-import org.halyavaradar.storage.FileStorage;
-import org.halyavaradar.storage.JsonFileStorage;
-import org.halyavaradar.storage.StorageFormat;
-import picocli.CommandLine;
+import org.halyavaradar.core.http.ApiHttpClient;
+import org.halyavaradar.core.service.ApiAggregator;
+import org.halyavaradar.core.service.StorageService;
+import org.halyavaradar.core.service.StorageServiceFactory;
+import org.halyavaradar.core.source.SourceRegistry;
+import org.halyavaradar.core.source.cheapshark.CheapSharkMapper;
+import org.halyavaradar.core.source.cheapshark.CheapSharkSource;
+import org.halyavaradar.core.source.freetogame.FreeToGameMapper;
+import org.halyavaradar.core.source.freetogame.FreeToGameSource;
+import org.halyavaradar.core.source.kursrublya.KursRublyaMapper;
+import org.halyavaradar.core.source.kursrublya.KursRublyaSource;
+import org.halyavaradar.core.storage.CsvFileStorage;
+import org.halyavaradar.core.storage.FileStorage;
+import org.halyavaradar.core.storage.JsonFileStorage;
+import org.halyavaradar.core.storage.StorageFormat;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
@@ -28,8 +24,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 
-@Slf4j
-public class ApplicationFactory implements AutoCloseable {
+public class ApplicationFactory implements StorageServiceFactory, AutoCloseable {
     private final JsonMapper jsonMapper;
     private final HttpClient httpClient;
     private final ApiHttpClient apiHttpClient;
@@ -76,6 +71,7 @@ public class ApplicationFactory implements AutoCloseable {
         return new SourceRegistry(List.of(cheapSharkSource, freeToGameSource, kursRublyaSource));
     }
 
+    @Override
     public StorageService createStorageService(Path filePath, StorageFormat format) {
         FileStorage storage = switch (format) {
             case JSON -> new JsonFileStorage(filePath, jsonMapper);
@@ -85,38 +81,12 @@ public class ApplicationFactory implements AutoCloseable {
         return new StorageService(storage);
     }
 
-    public CommandLine createCommandLine() {
-        SourceRegistry registry = createSourceRegistry();
-        ApiAggregator aggregator = new ApiAggregator(registry);
+    public ApiAggregator createAggregator(SourceRegistry sourceRegistry) {
+        return new ApiAggregator(sourceRegistry);
+    }
 
-        CommandLine commandLine = new CommandLine(new RadarCommand());
-
-        commandLine.addSubcommand(
-                "fetch",
-                new FetchCommand(aggregator, registry, this)
-        );
-        commandLine.addSubcommand(
-                "read",
-                new ReadCommand(this, jsonMapper)
-        );
-
-        commandLine.setCaseInsensitiveEnumValuesAllowed(true);
-        commandLine.setParameterExceptionHandler((exception, arguments) -> {
-            CommandLine failedCommand = exception.getCommandLine();
-            log.warn("Ошибка аргументов команды {}: {}",
-                    failedCommand.getCommandName(), exception.getMessage());
-            failedCommand.getErr().println("Ошибка аргументов: " + exception.getMessage());
-            failedCommand.usage(failedCommand.getErr());
-            return CommandLine.ExitCode.USAGE;
-        });
-        commandLine.setExecutionExceptionHandler((exception, failedCommand, parseResult) -> {
-            log.error("Ошибка выполнения команды {}: {}",
-                    failedCommand.getCommandName(), exception.getMessage(), exception);
-            failedCommand.getErr().println("Ошибка выполнения: " + exception.getMessage());
-            return CommandLine.ExitCode.SOFTWARE;
-        });
-
-        return commandLine;
+    public JsonMapper getJsonMapper() {
+        return jsonMapper;
     }
 }
 

@@ -1,13 +1,13 @@
 package org.halyavaradar.cli;
 
-import org.halyavaradar.config.ApplicationFactory;
 import org.halyavaradar.config.JsonMapperFactory;
-import org.halyavaradar.model.ApiRecord;
-import org.halyavaradar.service.ApiAggregator;
-import org.halyavaradar.service.StorageService;
-import org.halyavaradar.source.SourceRegistry;
-import org.halyavaradar.storage.StorageFormat;
-import org.halyavaradar.storage.WriteMode;
+import org.halyavaradar.core.model.ApiRecord;
+import org.halyavaradar.core.service.ApiAggregator;
+import org.halyavaradar.core.service.StorageService;
+import org.halyavaradar.core.service.StorageServiceFactory;
+import org.halyavaradar.core.source.SourceRegistry;
+import org.halyavaradar.core.storage.StorageFormat;
+import org.halyavaradar.core.storage.WriteMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,7 +38,7 @@ class FetchCommandTest {
 
     private final ApiAggregator aggregator = mock(ApiAggregator.class);
     private final SourceRegistry registry = mock(SourceRegistry.class);
-    private final ApplicationFactory factory = mock(ApplicationFactory.class);
+    private final StorageServiceFactory storageServiceFactory = mock(StorageServiceFactory.class);
     private final StorageService storage = mock(StorageService.class);
     private final List<String> allSources = List.of("cheapshark", "freetogame", "kursrublya");
     private final List<ApiRecord> records = List.of(new ApiRecord(
@@ -52,7 +52,7 @@ class FetchCommandTest {
     void setUp() {
         file = tempDir.resolve("records.dat");
         when(registry.getSourceNames()).thenReturn(new LinkedHashSet<>(allSources));
-        cli = new CommandLine(new FetchCommand(aggregator, registry, factory));
+        cli = new CommandLine(new FetchCommand(aggregator, registry, storageServiceFactory));
         cli.setCaseInsensitiveEnumValuesAllowed(true);
         cli.setOut(new PrintWriter(output, true));
         cli.setErr(new PrintWriter(new StringWriter(), true));
@@ -61,7 +61,7 @@ class FetchCommandTest {
     @Test
     void shouldFetchAllSourcesAndOverwriteJsonByDefault() throws IOException {
         when(aggregator.fetch(allSources)).thenReturn(records);
-        when(factory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
 
         assertEquals(0, cli.execute("--path", file.toString()));
 
@@ -76,13 +76,13 @@ class FetchCommandTest {
         StorageFormat expectedFormat = StorageFormat.valueOf(format.toUpperCase(java.util.Locale.ROOT));
         WriteMode expectedMode = WriteMode.valueOf(mode.toUpperCase(java.util.Locale.ROOT));
         when(aggregator.fetch(selected)).thenReturn(records);
-        when(factory.createStorageService(file, expectedFormat)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, expectedFormat)).thenReturn(storage);
 
         assertEquals(0, cli.execute("--sources", "freetogame,cheapshark",
                 "--format", format, "--mode", mode, "--path", file.toString()));
 
         verify(aggregator).fetch(selected);
-        verify(factory).createStorageService(file, expectedFormat);
+        verify(storageServiceFactory).createStorageService(file, expectedFormat);
         verify(storage).write(records, expectedMode);
     }
 
@@ -91,7 +91,7 @@ class FetchCommandTest {
         assertEquals(CommandLine.ExitCode.USAGE,
                 cli.execute("--sources", "cheapshark,unknown", "--path", file.toString()));
 
-        verifyNoInteractions(aggregator, factory, storage);
+        verifyNoInteractions(aggregator, storageServiceFactory, storage);
     }
 
     @ParameterizedTest
@@ -100,13 +100,13 @@ class FetchCommandTest {
         assertEquals(CommandLine.ExitCode.USAGE,
                 cli.execute("--path", file.toString(), option, "invalid"));
 
-        verifyNoInteractions(aggregator, factory, storage);
+        verifyNoInteractions(aggregator, storageServiceFactory, storage);
     }
 
     @Test
     void shouldRequirePathBeforeCallingServices() {
         assertEquals(CommandLine.ExitCode.USAGE, cli.execute());
-        verifyNoInteractions(aggregator, factory, storage);
+        verifyNoInteractions(aggregator, storageServiceFactory, storage);
     }
 
     @Test
@@ -114,13 +114,13 @@ class FetchCommandTest {
         assertEquals(0, cli.execute("--help"));
         assertTrue(output.toString().contains("--sources"));
         assertTrue(output.toString().contains("--mode"));
-        verifyNoInteractions(aggregator, factory, storage);
+        verifyNoInteractions(aggregator, storageServiceFactory, storage);
     }
 
     @Test
     void shouldSaveEmptyResult() throws IOException {
         when(aggregator.fetch(allSources)).thenReturn(List.of());
-        when(factory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
 
         assertEquals(0, cli.execute("--path", file.toString()));
         verify(storage).write(List.of(), WriteMode.OVERWRITE);
@@ -129,7 +129,7 @@ class FetchCommandTest {
     @Test
     void shouldReturnFailureWhenSavingFails() throws IOException {
         when(aggregator.fetch(allSources)).thenReturn(records);
-        when(factory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
+        when(storageServiceFactory.createStorageService(file, StorageFormat.JSON)).thenReturn(storage);
         doThrow(new IOException("Ошибка записи")).when(storage).write(records, WriteMode.OVERWRITE);
 
         assertEquals(CommandLine.ExitCode.SOFTWARE, cli.execute("--path", file.toString()));

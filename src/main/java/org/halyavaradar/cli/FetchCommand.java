@@ -1,13 +1,13 @@
 package org.halyavaradar.cli;
 
 import lombok.extern.slf4j.Slf4j;
-import org.halyavaradar.config.ApplicationFactory;
-import org.halyavaradar.model.ApiRecord;
-import org.halyavaradar.service.ApiAggregator;
-import org.halyavaradar.service.StorageService;
-import org.halyavaradar.source.SourceRegistry;
-import org.halyavaradar.storage.StorageFormat;
-import org.halyavaradar.storage.WriteMode;
+import org.halyavaradar.core.model.ApiRecord;
+import org.halyavaradar.core.service.ApiAggregator;
+import org.halyavaradar.core.service.StorageService;
+import org.halyavaradar.core.service.StorageServiceFactory;
+import org.halyavaradar.core.source.SourceRegistry;
+import org.halyavaradar.core.storage.StorageFormat;
+import org.halyavaradar.core.storage.WriteMode;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -26,12 +26,12 @@ import java.util.concurrent.Callable;
 public class FetchCommand implements Callable<Integer> {
     private final ApiAggregator aggregator;
     private final SourceRegistry sourceRegistry;
-    private final ApplicationFactory factory;
+    private final StorageServiceFactory storageServiceFactory;
 
-    public FetchCommand(ApiAggregator aggregator, SourceRegistry sourceRegistry, ApplicationFactory factory) {
+    public FetchCommand(ApiAggregator aggregator, SourceRegistry sourceRegistry, StorageServiceFactory storageServiceFactory) {
         this.aggregator = aggregator;
         this.sourceRegistry = sourceRegistry;
-        this.factory = factory;
+        this.storageServiceFactory = storageServiceFactory;
     }
 
     @CommandLine.Option(
@@ -91,7 +91,7 @@ public class FetchCommand implements Callable<Integer> {
         if (records.isEmpty()) {
             log.warn("Источники не вернули записей: файл={}, режим записи={}", filePath, mode);
         }
-        StorageService storageService = factory.createStorageService(filePath, format);
+        StorageService storageService = storageServiceFactory.createStorageService(filePath, format);
         storageService.write(records, mode);
 
         log.info("Сохранено записей: {}, формат: {}, режим: {}, файл: {}",

@@ -68,6 +68,13 @@
 
 Служебные сообщения идут в stderr, логи уровня INFO и выше — также в `logs/halyava-radar.log`. Каталоги `data/` и `logs/` исключены из Git. Коды завершения: `0` — успех, `1` — ошибка выполнения, `2` — ошибка аргументов; сбои отдельных API обрабатываются внутри агрегатора и сами по себе не меняют код завершения.
 
+## Структура пакетов
+
+- `org.halyavaradar.core` (`model`, `http`, `service`, `source`, `storage`) — ядро, не зависит от CLI и `config`.
+- `org.halyavaradar.config` — сборка объектов приложения.
+- `org.halyavaradar.cli` — консольные команды на picocli и фабрика CLI.
+- `org.halyavaradar.Main` — точка входа.
+
 ## Как связаны классы
 
 Основные зависимости показаны стрелками, создание объектов — пунктиром. Поля параметров CLI и детали отдельных API опущены, чтобы схема оставалась компактной.
@@ -79,18 +86,31 @@ classDiagram
         -HttpClient httpClient
         -ApiHttpClient apiHttpClient
         -Clock clock
-        +createCommandLine() CommandLine
+        +createSourceRegistry() SourceRegistry
+        +createAggregator(sourceRegistry) ApiAggregator
+        +getJsonMapper() JsonMapper
         +createStorageService(path, format) StorageService
         +close()
+    }
+    class StorageServiceFactory {
+        <<interface>>
+        +createStorageService(path, format) StorageService
+    }
+    class CommandLineFactory {
+        -ApiAggregator aggregator
+        -SourceRegistry sourceRegistry
+        -StorageServiceFactory storageServiceFactory
+        -JsonMapper jsonMapper
+        +create() CommandLine
     }
     class FetchCommand {
         -ApiAggregator aggregator
         -SourceRegistry sourceRegistry
-        -ApplicationFactory factory
+        -StorageServiceFactory storageServiceFactory
         +call() Integer
     }
     class ReadCommand {
-        -ApplicationFactory factory
+        -StorageServiceFactory storageServiceFactory
         -JsonMapper jsonMapper
         +call() Integer
     }
@@ -112,12 +132,19 @@ classDiagram
         +load() List~ApiRecord~
     }
     Main ..> ApplicationFactory : создаёт и закрывает
-    ApplicationFactory ..> RadarCommand : создаёт корневую команду
-    ApplicationFactory ..> FetchCommand : создаёт
-    ApplicationFactory ..> ReadCommand : создаёт
+    Main ..> CommandLineFactory : создаёт CLI
+    ApplicationFactory ..> SourceRegistry : создаёт
+    ApplicationFactory ..> ApiAggregator : создаёт
+    StorageServiceFactory <|.. ApplicationFactory
+    CommandLineFactory ..> RadarCommand : создаёт корневую команду
+    CommandLineFactory ..> FetchCommand : создаёт
+    CommandLineFactory ..> ReadCommand : создаёт
+    CommandLineFactory --> ApiAggregator
+    CommandLineFactory --> SourceRegistry
+    CommandLineFactory --> StorageServiceFactory
     ApplicationFactory ..> StorageService : создаёт для выбранного формата
-    FetchCommand --> ApplicationFactory
-    ReadCommand --> ApplicationFactory
+    FetchCommand --> StorageServiceFactory
+    ReadCommand --> StorageServiceFactory
     FetchCommand --> ApiAggregator : aggregator
     FetchCommand --> SourceRegistry : sourceRegistry
     ApiAggregator --> SourceRegistry : sourceRegistry
